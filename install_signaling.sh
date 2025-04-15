@@ -25,7 +25,9 @@ fi
 # --- CLONAR REPOSITORIO ---
 echo "[3/7] Clonando Signaling Server..."
 rm -rf "$SIGNALING_DIR"
-git clone https://github.com/nextcloud/signaling.git "$SIGNALING_DIR"
+git config --global url."https://github.com/".insteadOf git@github.com:
+git config --global url."https://".insteadOf git://
+git clone https://github.com/nextcloud-releases/signaling.git "$SIGNALING_DIR"
 cd "$SIGNALING_DIR"
 npm install
 npm run build
