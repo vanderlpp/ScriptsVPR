@@ -8,10 +8,32 @@
 
 set -e
 
-# CONFIGURAÇÕES
+# Valores padrão
+DOMAIN=""
+EMAIL=""
 DB_VERSION="11.4"
-DOMAIN="painel.exemplo.com"  # <- ALTERE PARA SEU DOMÍNIO
-EMAIL="admin@exemplo.com"    # <- ALTERE PARA SEU E-MAIL
+
+# Lê parâmetros da linha de comando
+for arg in "$@"; do
+  case $arg in
+    --domain=*)
+      DOMAIN="${arg#*=}"
+      shift
+      ;;
+    --email=*)
+      EMAIL="${arg#*=}"
+      shift
+      ;;
+  esac
+done
+
+# Verifica se os parâmetros foram fornecidos
+if [[ -z "$DOMAIN" || -z "$EMAIL" ]]; then
+  echo "❌ Parâmetros obrigatórios não fornecidos."
+  echo "   Uso correto:"
+  echo "   bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/vanderlpp/ScriptsVPR/main/install-cloudpanel.sh)\" -- --domain=seu.dominio.com --email=seu@email.com"
+  exit 1
+fi
 
 # Verifica se está como root
 if [ "$EUID" -ne 0 ]; then
@@ -52,15 +74,9 @@ sleep 30
 IP=$(hostname -I | awk '{print $1}')
 echo "✅ CloudPanel instalado! Acesse via IP: https://$IP:8443"
 
-# Solicita configuração de SSL
-read -p "Deseja configurar SSL com Let's Encrypt para $DOMAIN? (s/n): " RESP
-if [[ "$RESP" == "s" || "$RESP" == "S" ]]; then
-  echo "🔐 Configurando SSL..."
-  /usr/bin/cloudpanel cli ssl:enable --domains "$DOMAIN" --email "$EMAIL" --env production
-  echo "✅ SSL configurado. Acesse: https://$DOMAIN:8443"
-else
-  echo "⚠️ Você pode configurar depois com:"
-  echo "/usr/bin/cloudpanel cli ssl:enable --domains \"$DOMAIN\" --email \"$EMAIL\" --env production"
-fi
+# Configura SSL
+echo "🔐 Configurando SSL com Let's Encrypt para o domínio $DOMAIN..."
+/usr/bin/cloudpanel cli ssl:enable --domains "$DOMAIN" --email "$EMAIL" --env production
+echo "✅ SSL configurado com sucesso! Acesse: https://$DOMAIN:8443"
 
-echo "✅ Instalação concluída com sucesso!"
+echo "✅ Instalação concluída!"
