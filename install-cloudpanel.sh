@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# ┌───────────────────────────────────────────────────────────────┐
-# │  Script de Instalação do CloudPanel + MariaDB 11.4 + SSL      │
-# │  Compatível com: Ubuntu 24.04 LTS                             │
-# │  Autor: Vander - ScriptsVPR                                   │
-# └───────────────────────────────────────────────────────────────┘
+# ┌────────────────────────────────────────────────────────────────────┐
+# │ Script de Instalação do CloudPanel + MariaDB 11.4 + SSL + Proxmox │
+# │ Compatível com: Ubuntu 24.04 LTS                                   │
+# │ Autor: Vander - ScriptsVPR                                         │
+# └────────────────────────────────────────────────────────────────────┘
 
 set -e
 
@@ -41,9 +41,16 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
+# Instala e ativa o agente do Proxmox VE
+echo "📡 Instalando qemu-guest-agent para integração com Proxmox VE..."
+apt update
+apt install -y qemu-guest-agent
+systemctl start qemu-guest-agent
+systemctl enable qemu-guest-agent
+
 # Atualiza o sistema
 echo "🔄 Atualizando o sistema..."
-apt update && apt upgrade -y
+apt upgrade -y
 
 # Instala dependências
 echo "📦 Instalando dependências..."
@@ -79,4 +86,4 @@ echo "🔐 Configurando SSL com Let's Encrypt para o domínio $DOMAIN..."
 /usr/bin/cloudpanel cli ssl:enable --domains "$DOMAIN" --email "$EMAIL" --env production
 echo "✅ SSL configurado com sucesso! Acesse: https://$DOMAIN:8443"
 
-echo "✅ Instalação concluída!"
+echo "✅ Instalação finalizada com sucesso!"
